@@ -22,14 +22,25 @@ int is_timespec_b_greater_than_a(struct timespec a, struct timespec b){
 }
 
 long timespec_to_ms(struct timespec tim){
-	return tim.tv_sec * 1000 + (tim.tv_nsec / 1000000L);
+	return (long)(tim.tv_sec * 1000 + (tim.tv_nsec / 1000000L));
+}
+
+int timespec_to_deci(struct timespec tim){
+	return tim.tv_sec * 100 + (tim.tv_nsec / 10000000);
 }
 
 long get_clock_ms(){
 	struct timespec temp;
-	if (clock_gettime(CLOCK_REALTIME, &temp) == -1) return -1;
 
+	if (clock_gettime(CLOCK_REALTIME, &temp) == -1) return -1;
 	return timespec_to_ms(temp);
+}
+
+long get_clock_deci(){//100-fractions of seconds
+	struct timespec temp;
+	
+	if (clock_gettime(CLOCK_REALTIME, &temp) == -1) return -1;
+	return timespec_to_deci(temp);
 }
 
 
@@ -73,7 +84,7 @@ int kbhit (WINDOW * stds)
 int main(){
 	struct timespec start, end, klockan, s_f;
 	double accum, comp;
-	int count = 0, diff=0, c1, c2, interval_ms = 50;
+	int count = 0, diff=0, c1, c2, interval_ms = 50, interval_deci = 5;
 	long clock, lasttime;
 
 	//printf("Game loop 1 start, %ld\n", get_clock_ms());
@@ -84,15 +95,15 @@ int main(){
 
 	if (clock_gettime(CLOCK_REALTIME, &s_f)== -1) printf("error1");
 
-	lasttime = get_clock_ms();
+	lasttime = get_clock_deci();
 
 
 	while(1){
-		clock = lasttime;
+		clock = get_clock_deci();
 		printw("%ld ", clock);
 		refresh();
 
-		if(clock > lasttime + interval_ms){
+		if(clock > lasttime + interval_deci){
 			count++;
 			lasttime = clock;
 		}
