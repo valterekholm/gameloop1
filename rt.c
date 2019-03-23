@@ -59,9 +59,9 @@ struct timespec add_ms(struct timespec tim, int milliseconds){
 
 }
 
-int kbhit ()
+int kbhit (WINDOW * stds)
 {
-	int ch = wgetch(stdscr);
+	int ch = wgetch(stds);
 
 	if(ch != ERR){
 		ungetch(ch);
@@ -76,7 +76,9 @@ int main(){
 	int count = 0, diff=0, c1, c2, interval_ms = 50;
 	long clock, lasttime;
 
-	WINDOW * stdsrc = initscr();
+	//printf("Game loop 1 start, %ld\n", get_clock_ms());
+	//sleep(1);
+	WINDOW * stds = initscr();
 	clear();
 	clock_gettime(CLOCK_REALTIME, &start);
 
@@ -84,15 +86,18 @@ int main(){
 
 	lasttime = get_clock_ms();
 
+
 	while(1){
-		clock = get_clock_ms();
+		clock = lasttime;
+		printw("%ld ", clock);
+		refresh();
 
 		if(clock > lasttime + interval_ms){
 			count++;
-			lasttime = get_clock_ms();
+			lasttime = clock;
 		}
 
-		if(kbhit()){
+		if(kbhit(stds)){
 			break;
 		}
 
@@ -105,5 +110,6 @@ int main(){
 	endwin();
 	printf("%lf %d\t%d %ld\t%ld\n", accum, count, interval_ms, lasttime, clock);
 
+	//printf("Game loop 1 end, %ld\n", get_clock_ms());
 	return 0;
 }
