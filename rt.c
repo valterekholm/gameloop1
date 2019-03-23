@@ -106,12 +106,12 @@ int main(){
 
 	while(1){
 		clock = get_clock_deci();
-		printw("%ld ", clock);
+		//printw("%ld ", clock);
 
 		if(clock > lasttime + interval_deci){
 			count++;
 			lasttime = clock;
-			refresh();
+			//refresh(); //printw and refresh doesnt work, screen freezes
 		}
 
 		if(kbhit()){
