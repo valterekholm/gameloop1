@@ -96,6 +96,7 @@ int main(){
 	cbreak();
 	noecho();
 	nodelay(stds, TRUE);
+	scrollok(stds, TRUE);
 	clear();
 	clock_gettime(CLOCK_REALTIME, &start);
 
@@ -106,12 +107,15 @@ int main(){
 
 	while(1){
 		clock = get_clock_deci();
-		//printw("%ld ", clock);
+		printw("%ld  ", clock-lasttime);
 
 		if(clock > lasttime + interval_deci){
 			count++;
 			lasttime = clock;
-			//refresh(); //printw and refresh doesnt work, screen freezes
+			/*if(count % interval_deci == 0){
+				clear();
+			}*/
+			refresh();
 		}
 
 		if(kbhit()){
