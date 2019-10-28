@@ -7,6 +7,11 @@
 #define ESC 27
 #define BODYMAX 1000
 #define BILLION 1000000000L
+
+//Nu ska jag fortsätta att förbättra grafiken, till att börja med:
+// Göra en skugg-orm som suddar ut gamla positionen i.s.f. att göra clear varje uppdatering...
+// Göra om "rutnätet" så att två skärmtecken (bredvid varran) ska utgöra en "pixel"
+
 struct head{
 	int x;
 	int y;
@@ -169,7 +174,7 @@ struct snake init_snake(int board_width, int board_height){
 
 int main(int argc, char * argv[]){
 	int key_hit, points = 0, count_moves = 0;
-	struct timespec tim1, tim2, tim3, tim4, start, end, s_f, klockan;
+	struct timespec tim1/*, tim2*/, tim3, tim4, start, end, s_f, klockan;
 	double i_m_f = 0.05;// intervallet i sekunder...
 	double accum;//users.pja.edu.pl/~jms/qnx
 
@@ -200,11 +205,15 @@ int main(int argc, char * argv[]){
 	clock_gettime( CLOCK_REALTIME, &s_f);
 	
 	struct snake snake = init_snake(COLS, LINES);
+	struct body cleaner; // ska följa ormen och sudda
+	cleaner.x = cleaner.y = -1;//markera att den inte kan användas ännu
 
-	struct body temp;
+	struct snake shadow = snake;
+
+	struct body temp;//mat
 	do{
 		temp = get_new_position(COLS, LINES, 2);
-	} while(is_position_in_snake(snake, temp.x, temp.y, 20));
+	} while(is_position_in_snake(snake, temp.x, temp.y, 20) || temp.y==LINES/2);
 
 		
 	struct body food_position = temp;
@@ -254,6 +263,12 @@ int main(int argc, char * argv[]){
 			
 			clear();//I spelloopen sker nu en rensning av hela skärmen varje "varv"
 			draw_wall(stdsrc);//kanterna på planen måste därför ritas om också
+
+			if(cleaner.x >= 0){
+				//sudda efter ormen
+				//mvdelch(cleaner.y, cleaner.x);
+			}
+
 			mvprintw(snake.head.y, snake.head.x, "\u2588");
 			for(int i=0; i<snake.length-1; i++){
 				mvprintw(snake.body[i].y, snake.body[i].x, "\u2588");
@@ -304,20 +319,26 @@ int main(int argc, char * argv[]){
 				break;//här avbryts spelloopen
 			}//krock med väggarna kontrolleras
 			if(is_position_in_snake(snake, x, y, 0)){
-				mvprintw(LINES/2,COLS/2," Krash ");
-				refresh();
-				break;
+								break;
 			}
+
+			//innan flytt, spara i shadow
+			shadow = snake;//automatisk tilldelning, enl. nätet
 
 			snake.head.x = x;
 			snake.head.y = y;//här återgår man till fulla variablelnamnen
 
 			if(snake.length>2)
 			{
+				cleaner.x = snake.body[snake.length-2].x;//sista
+
 				for(int i=snake.length-2; i>0; i--)
 				{
 					snake.body[i] = snake.body[i-1];
 				}//bara om det finns en kropp om minst 2 bitar...
+			}
+			else{
+				cleaner = snake.body[0];
 			}
 			snake.body[0].x = oldx;//första kropps-biten får huvudets gamla position
 			snake.body[0].y = oldy;	
@@ -330,10 +351,6 @@ int main(int argc, char * argv[]){
 		}
 	}
 
-
-
-	endwin();
-
 	//get end time
 	if( clock_gettime( CLOCK_REALTIME, &end) == -1) {
 		perror("clock gettime");
@@ -341,8 +358,16 @@ int main(int argc, char * argv[]){
 	}
 
 	accum = (double)( end.tv_sec - start.tv_sec ) + (double)( end.tv_nsec - start.tv_nsec ) / BILLION;
-	printf("Points: %d\n", points);
-	printf("Time elapsed: %lf\n ", accum);
-	printf("moves: %d\n", count_moves);
+
+	mvprintw(LINES/2-2,COLS/2-6," Krash ");
+	mvprintw(LINES/2-1,COLS/2-6,"%d poäng", points);
+	mvprintw(LINES/2,COLS/2-6,"%lf sekunder", accum);
+	mvprintw(LINES/2+1,COLS/2-6,"%d steg", count_moves);
+
+	refresh();
+
+
+	endwin();
+
 	return 0;
 }
